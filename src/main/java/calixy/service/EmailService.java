@@ -18,7 +18,7 @@ public class EmailService {
     public void sendVerificationCode(String to, String code) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("Email Verification - Alivium");
+        message.setSubject("Email Verification - CalixyAI");
         message.setText("Your verification code is: " + code + "\n\nThis code will expire in 10 minutes.");
 
         try {
@@ -33,7 +33,7 @@ public class EmailService {
     public void sendPasswordResetEmail(String to, String code) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("Password Reset - Alivium");
+        message.setSubject("Password Reset - CalixyAI");
         message.setText("Your password reset code is: " + code + "\n\nThis code will expire in 15 minutes.");
 
         try {
@@ -48,8 +48,8 @@ public class EmailService {
     public void sendWelcomeEmail(String to, String firstName) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("Welcome to Alivium!");
-        message.setText("Hello " + firstName + ",\n\nWelcome to Alivium! We're excited to have you on board.\n\nBest regards,\nAlivium Team");
+        message.setSubject("Welcome to CalixyAI!");
+        message.setText("Hello " + firstName + ",\n\nWelcome to CalixyAI! We're excited to have you on board.\n\nBest regards,\nCalixyAI Team");
 
         try {
             mailSender.send(message);

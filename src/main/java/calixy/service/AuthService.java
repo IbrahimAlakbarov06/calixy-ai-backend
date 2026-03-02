@@ -248,7 +248,7 @@ public class AuthService {
 
     private String generateVerificationCode() {
         Random random = new Random();
-        int code = 1000 + random.nextInt(9000);
+        int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
     }
 }

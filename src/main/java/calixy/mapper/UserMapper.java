@@ -54,21 +54,21 @@ public class UserMapper {
                 .active(true)
                 .build();
     }
-
-    public void updateUserFromRequest(User user, UpdateUserRequest request) {
-        if (request.getFirstName() != null) {
-            user.setFirstName(request.getFirstName());
-        }
-        if (request.getLastName() != null) {
-            user.setLastName(request.getLastName());
-        }
-        if (request.getPhoneNumber() != null) {
-            user.setPhoneNumber(request.getPhoneNumber());
-        }
-        if (request.getProfileImage() != null) {
-            user.setProfileImage(request.getProfileImage());
-        }
-    }
+//
+//    public void updateUserFromRequest(User user, UpdateUserRequest request) {
+//        if (request.getFirstName() != null) {
+//            user.setFirstName(request.getFirstName());
+//        }
+//        if (request.getLastName() != null) {
+//            user.setLastName(request.getLastName());
+//        }
+//        if (request.getPhoneNumber() != null) {
+//            user.setPhoneNumber(request.getPhoneNumber());
+//        }
+//        if (request.getProfileImage() != null) {
+//            user.setProfileImage(request.getProfileImage());
+//        }
+//    }
 
     public List<UserResponse> toListResponse(List<User> users) {
         return users.stream()
