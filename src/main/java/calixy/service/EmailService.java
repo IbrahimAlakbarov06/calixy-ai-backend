@@ -45,11 +45,11 @@ public class EmailService {
     }
 
     @Async
-    public void sendWelcomeEmail(String to, String firstName) {
+    public void sendWelcomeEmail(String to) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Welcome to CalixyAI!");
-        message.setText("Hello " + firstName + ",\n\nWelcome to CalixyAI! We're excited to have you on board.\n\nBest regards,\nCalixyAI Team");
+        message.setText("Hello!" + ",\n\nWelcome to CalixyAI! We're excited to have you on board.\n\nBest regards,\nCalixyAI Team");
 
         try {
             mailSender.send(message);

@@ -36,6 +36,10 @@ public class AuthService {
 
     @Transactional
     public MessageResponse register(RegisterRequest request) {
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new InvalidInputException("Passwords do not match");
+        }
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AlreadyExistsException("User with email " + request.getEmail() + " already exists");
         }
@@ -71,7 +75,7 @@ public class AuthService {
 
         redisService.deleteVerificationCode(user.getEmail());
 
-        emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
+        emailService.sendWelcomeEmail(user.getEmail());
 
 
         String accessToken = jwtService.generateToken(user.getEmail());
