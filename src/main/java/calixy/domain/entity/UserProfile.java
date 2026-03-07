@@ -31,6 +31,8 @@ public class UserProfile {
 
     private String lastName;
 
+    private String profileImage;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
