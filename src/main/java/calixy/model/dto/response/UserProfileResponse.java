@@ -20,6 +20,7 @@ public class UserProfileResponse {
     private Long id;
     private String fullName;
     private String email;
+    private String profileImage;
 
     private Gender gender;
     private LocalDate dateOfBirth;

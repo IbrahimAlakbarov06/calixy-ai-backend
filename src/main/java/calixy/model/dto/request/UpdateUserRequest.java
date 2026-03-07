@@ -22,8 +22,6 @@ public class UpdateUserRequest {
     @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     private String lastName;
 
-    private String phoneNumber;
-
     private String profileImage;
 
     private Gender gender;

@@ -1,6 +1,8 @@
 package calixy.service;
 
 import calixy.domain.entity.User;
+import calixy.domain.entity.UserProfile;
+import calixy.domain.repo.UserProfileRepository;
 import calixy.domain.repo.UserRepository;
 import calixy.exception.AlreadyExistsException;
 import calixy.exception.BusinessException;
@@ -27,6 +29,7 @@ import java.util.Random;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -137,7 +140,10 @@ public class AuthService {
 
         if (user.getAuthProvider() == AuthProvider.LOCAL) {
             user.setAuthProvider(AuthProvider.GOOGLE);
-            user.setProfileImage(profileImage);
+            UserProfile profile = userProfileRepository.findByUserId(user.getId())
+                    .orElse(UserProfile.builder().user(user).build());
+            profile.setProfileImage(profileImage);
+            userProfileRepository.save(profile);
             userRepository.save(user);
         }
 

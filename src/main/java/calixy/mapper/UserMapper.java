@@ -4,6 +4,7 @@ import calixy.domain.entity.User;
 import calixy.domain.entity.UserGoal;
 import calixy.domain.entity.UserProfile;
 import calixy.model.dto.request.RegisterRequest;
+import calixy.model.dto.request.SetupProfileRequest;
 import calixy.model.dto.request.UpdateUserRequest;
 import calixy.model.dto.response.UserProfileResponse;
 import calixy.model.dto.response.UserResponse;
@@ -11,6 +12,7 @@ import calixy.model.enums.AuthProvider;
 import calixy.model.enums.Goal;
 import calixy.model.enums.UserRole;
 import calixy.model.enums.UserStatus;
+import calixy.util.CalorieCalculator;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,7 +28,6 @@ public class UserMapper {
                 .firstName(profile != null ? profile.getFirstName() : null)
                 .lastName(profile != null ? profile.getLastName() : null)
                 .email(user.getEmail())
-                .profileImage(user.getProfileImage())
                 .status(user.getStatus())
                 .role(user.getRole())
                 .authProvider(user.getAuthProvider())
@@ -47,6 +48,7 @@ public class UserMapper {
                 .id(user.getId())
                 .fullName(profile != null ? profile.getFullName() : null)
                 .email(user.getEmail())
+                .profileImage(profile != null ? profile.getProfileImage() : null)
                 .gender(profile != null ? profile.getGender() : null)
                 .dateOfBirth(profile != null ? profile.getDateOfBirth() : null)
                 .height(profile != null ? profile.getHeight() : null)
@@ -72,12 +74,29 @@ public class UserMapper {
                 .build();
     }
 
+    public void applyUserProfile(UserProfile profile, SetupProfileRequest request, CalorieCalculator.MacroResult macros) {
+        profile.setFirstName(request.getFirstName());
+        profile.setLastName(request.getLastName());
+        profile.setProfileImage(profile.getProfileImage());
+        profile.setGender(request.getGender());
+        profile.setDateOfBirth(request.getDateOfBirth());
+        profile.setHeight(request.getHeight());
+        profile.setWeight(request.getWeight());
+        profile.setActivityLevel(request.getActivityLevel());
+        profile.setDailyCalorieGoal(macros.getCalories());
+        profile.setDailyProteinGoal(macros.getProtein());
+        profile.setDailyCarbGoal(macros.getCarbs());
+        profile.setDailyFatGoal(macros.getFat());
+
+        if (request.getProfileImage() != null && !request.getProfileImage().isBlank()) {
+            profile.setProfileImage(request.getProfileImage());
+        }
+    }
 
     public User toGoogleUser(String email, String firstName, String lastName,
                              String profileImage, String encodedPassword) {
         User user = User.builder()
                 .email(email)
-                .profileImage(profileImage)
                 .password(encodedPassword)
                 .authProvider(AuthProvider.GOOGLE)
                 .status(UserStatus.ACTIVE)
@@ -89,6 +108,7 @@ public class UserMapper {
                 .user(user)
                 .firstName(firstName)
                 .lastName(lastName)
+                .profileImage(profileImage)
                 .build();
 
         user.setProfile(profile);
@@ -96,9 +116,9 @@ public class UserMapper {
     }
 
 
-    public void updateFromRequest(User user, UserProfile profile, UpdateUserRequest request) {
+    public void updateFromRequest(User user, UserProfile profile, UpdateUserRequest request, CalorieCalculator.MacroResult macros) {
         if (request.getProfileImage() != null) {
-            user.setProfileImage(request.getProfileImage());
+            profile.setProfileImage(request.getProfileImage());
         }
 
         if (request.getFirstName() != null) {
@@ -122,6 +142,14 @@ public class UserMapper {
         if (request.getActivityLevel() != null) {
             profile.setActivityLevel(request.getActivityLevel());
         }
+
+        if (macros != null) {
+            profile.setDailyCalorieGoal(macros.getCalories());
+            profile.setDailyProteinGoal(macros.getProtein());
+            profile.setDailyCarbGoal(macros.getCarbs());
+            profile.setDailyFatGoal(macros.getFat());
+        }
+
     }
 
 
