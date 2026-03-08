@@ -16,7 +16,7 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
 
     boolean existsByUserIdAndGoal(Long userId, Goal goal);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("DELETE FROM UserGoal ug WHERE ug.user.id = :userId")
     void deleteByUserId(@Param("userId") Long userId);
 }
