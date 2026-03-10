@@ -22,12 +22,24 @@ import java.util.stream.Collectors;
 public class UserMapper {
 
     public UserResponse toResponse(User user) {
-        UserProfile profile = user.getProfile();
+        String firstName = null;
+        String lastName = null;
+        String profileImage = null;
+        try {
+            UserProfile profile = user.getProfile();
+            if (profile != null) {
+                firstName = profile.getFirstName();
+                lastName = profile.getLastName();
+                profileImage = profile.getProfileImage();
+            }
+        } catch (Exception ignored) {}
+
         return UserResponse.builder()
                 .id(user.getId())
-                .firstName(profile != null ? profile.getFirstName() : null)
-                .lastName(profile != null ? profile.getLastName() : null)
+                .firstName(firstName)
+                .lastName(lastName)
                 .email(user.getEmail())
+                .profileImage(profileImage)
                 .status(user.getStatus())
                 .role(user.getRole())
                 .authProvider(user.getAuthProvider())
@@ -35,14 +47,18 @@ public class UserMapper {
                 .build();
     }
 
-
     public UserProfileResponse toProfileResponse(User user) {
-        UserProfile profile = user.getProfile();
+        UserProfile profile = null;
+        try { profile = user.getProfile(); } catch (Exception ignored) {}
 
-        List<Goal> goals = user.getGoals() == null ? List.of() :
-                user.getGoals().stream()
+        List<Goal> goals = List.of();
+        try {
+            if (user.getGoals() != null) {
+                goals = user.getGoals().stream()
                         .map(UserGoal::getGoal)
                         .collect(Collectors.toList());
+            }
+        } catch (Exception ignored) {}
 
         return UserProfileResponse.builder()
                 .id(user.getId())
@@ -74,25 +90,6 @@ public class UserMapper {
                 .build();
     }
 
-    public void applyUserProfile(UserProfile profile, SetupProfileRequest request, CalorieCalculator.MacroResult macros) {
-        profile.setFirstName(request.getFirstName());
-        profile.setLastName(request.getLastName());
-        profile.setProfileImage(profile.getProfileImage());
-        profile.setGender(request.getGender());
-        profile.setDateOfBirth(request.getDateOfBirth());
-        profile.setHeight(request.getHeight());
-        profile.setWeight(request.getWeight());
-        profile.setActivityLevel(request.getActivityLevel());
-        profile.setDailyCalorieGoal(macros.getCalories());
-        profile.setDailyProteinGoal(macros.getProtein());
-        profile.setDailyCarbGoal(macros.getCarbs());
-        profile.setDailyFatGoal(macros.getFat());
-
-        if (request.getProfileImage() != null && !request.getProfileImage().isBlank()) {
-            profile.setProfileImage(request.getProfileImage());
-        }
-    }
-
     public User toGoogleUser(String email, String firstName, String lastName,
                              String profileImage, String encodedPassword) {
         User user = User.builder()
@@ -115,33 +112,36 @@ public class UserMapper {
         return user;
     }
 
+    public void applySetupProfile(UserProfile profile, SetupProfileRequest request,
+                                  CalorieCalculator.MacroResult macros) {
+        profile.setFirstName(request.getFirstName());
+        profile.setLastName(request.getLastName());
+        profile.setGender(request.getGender());
+        profile.setDateOfBirth(request.getDateOfBirth());
+        profile.setHeight(request.getHeight());
+        profile.setWeight(request.getWeight());
+        profile.setActivityLevel(request.getActivityLevel());
+        profile.setDailyCalorieGoal(macros.getCalories());
+        profile.setDailyProteinGoal(macros.getProtein());
+        profile.setDailyCarbGoal(macros.getCarbs());
+        profile.setDailyFatGoal(macros.getFat());
 
-    public void updateFromRequest(User user, UserProfile profile, UpdateUserRequest request, CalorieCalculator.MacroResult macros) {
-        if (request.getProfileImage() != null) {
+        if (request.getProfileImage() != null && !request.getProfileImage().isBlank()) {
             profile.setProfileImage(request.getProfileImage());
         }
+    }
 
-        if (request.getFirstName() != null) {
-            profile.setFirstName(request.getFirstName());
-        }
-        if (request.getLastName() != null) {
-            profile.setLastName(request.getLastName());
-        }
-        if (request.getGender() != null) {
-            profile.setGender(request.getGender());
-        }
-        if (request.getDateOfBirth() != null) {
-            profile.setDateOfBirth(request.getDateOfBirth());
-        }
-        if (request.getHeight() != null) {
-            profile.setHeight(request.getHeight());
-        }
-        if (request.getWeight() != null) {
-            profile.setWeight(request.getWeight());
-        }
-        if (request.getActivityLevel() != null) {
-            profile.setActivityLevel(request.getActivityLevel());
-        }
+    public void updateFromRequest(User user, UserProfile profile,
+                                  UpdateUserRequest request, CalorieCalculator.MacroResult macros) {
+        if (request.getProfileImage() != null && !request.getProfileImage().isBlank())
+            profile.setProfileImage(request.getProfileImage());
+        if (request.getFirstName() != null)    profile.setFirstName(request.getFirstName());
+        if (request.getLastName() != null)     profile.setLastName(request.getLastName());
+        if (request.getGender() != null)       profile.setGender(request.getGender());
+        if (request.getDateOfBirth() != null)  profile.setDateOfBirth(request.getDateOfBirth());
+        if (request.getHeight() != null)       profile.setHeight(request.getHeight());
+        if (request.getWeight() != null)       profile.setWeight(request.getWeight());
+        if (request.getActivityLevel() != null) profile.setActivityLevel(request.getActivityLevel());
 
         if (macros != null) {
             profile.setDailyCalorieGoal(macros.getCalories());
@@ -149,9 +149,7 @@ public class UserMapper {
             profile.setDailyCarbGoal(macros.getCarbs());
             profile.setDailyFatGoal(macros.getFat());
         }
-
     }
-
 
     public List<UserResponse> toListResponse(List<User> users) {
         return users.stream().map(this::toResponse).collect(Collectors.toList());
