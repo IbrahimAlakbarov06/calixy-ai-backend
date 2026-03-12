@@ -70,6 +70,7 @@ public class UserService {
         userProfileRepository.save(profile);
 
         userGoalRepository.deleteByUserId(user.getId());
+        userGoalRepository.flush();
 
         List<UserGoal> userGoals = request.getGoals().stream()
                 .map(goal -> UserGoal.builder()
@@ -77,7 +78,7 @@ public class UserService {
                         .goal(goal)
                         .build())
                 .collect(Collectors.toList());
-        userGoalRepository.saveAll(userGoals);
+        userGoalRepository.saveAllAndFlush(userGoals);
 
         User updatedUser = userRepository.findByIdWithProfileAndGoals(user.getId())
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -127,7 +128,7 @@ public class UserService {
 
     @Cacheable(value = "adminUser", key = "#email")
     public UserProfileResponse getUserByEmail(String email) {
-        User user = userRepository.findByEmailWithProfile(email)
+        User user = userRepository.findByEmailWithProfileAndGoals(email)
                 .orElseThrow(() -> new NotFoundException("User not found with email: " + email));
         return userMapper.toProfileResponse(user);
     }
