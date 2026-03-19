@@ -38,7 +38,7 @@ public class Food {
     private Double carbsPer100g;
 
     @Column(nullable = false)
-    private Double fatPer100g;
+    private Double fatsPer100g;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
