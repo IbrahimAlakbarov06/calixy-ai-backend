@@ -6,10 +6,13 @@ import calixy.domain.entity.UserProfile;
 import calixy.domain.repo.UserGoalRepository;
 import calixy.domain.repo.UserProfileRepository;
 import calixy.domain.repo.UserRepository;
+import calixy.exception.InvalidInputException;
 import calixy.exception.NotFoundException;
 import calixy.mapper.UserMapper;
+import calixy.model.dto.request.ChangePasswordRequest;
 import calixy.model.dto.request.SetupProfileRequest;
 import calixy.model.dto.request.UpdateUserRequest;
+import calixy.model.dto.response.MessageResponse;
 import calixy.model.dto.response.UserProfileResponse;
 import calixy.model.enums.ActivityLevel;
 import calixy.model.enums.Goal;
@@ -21,6 +24,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +42,7 @@ public class UserService {
     private final UserGoalRepository userGoalRepository;
     private final UserMapper userMapper;
     private final CalorieCalculator calorieCalculator;
+    private final PasswordEncoder passwordEncoder;
 
     @Cacheable(value = "userProfile", key = "#user.email")
     public UserProfileResponse getMyProfile(User user) {
@@ -113,6 +118,29 @@ public class UserService {
         return userMapper.toProfileResponse(updatedUser);
     }
 
+    @Transactional
+    @CacheEvict(value = "userProfile", key = "#user.id")
+    public MessageResponse changePassword(Long id, ChangePasswordRequest request) {
+        User user= findUserById(id);
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new InvalidInputException("Current password is incorrect");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new InvalidInputException("New password and confirmation do not match");
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new InvalidInputException("New password must be different from current password");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return new MessageResponse("Password updated successfully");
+    }
+
     @Cacheable(value = "adminUsers", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<UserProfileResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable)
@@ -121,8 +149,7 @@ public class UserService {
 
     @Cacheable(value = "adminUser", key = "#id")
     public UserProfileResponse getUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+        User user = findUserById(id);
         return userMapper.toProfileResponse(user);
     }
 
@@ -136,8 +163,7 @@ public class UserService {
     @Transactional
     @CacheEvict(value = {"adminUser", "adminUsers"}, allEntries = true)
     public UserProfileResponse updateUserStatus(Long id, UserStatus status) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+        User user = findUserById(id);
         user.setStatus(status);
         user.setActive(status == UserStatus.ACTIVE);
         userRepository.save(user);
@@ -147,8 +173,7 @@ public class UserService {
     @Transactional
     @CacheEvict(value = {"adminUser", "adminUsers"}, allEntries = true)
     public UserProfileResponse updateUserRole(Long id, UserRole role) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+        User user =findUserById(id);
         user.setRole(role);
         userRepository.save(user);
         return userMapper.toProfileResponse(user);
@@ -157,10 +182,15 @@ public class UserService {
     @Transactional
     @CacheEvict(value = {"adminUser", "adminUsers", "userProfile"}, allEntries = true)
     public void deleteUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+        User user = findUserById(id);
+
         user.setStatus(UserStatus.DELETED);
         user.setActive(false);
         userRepository.save(user);
+    }
+
+    private User findUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
     }
 }
