@@ -50,6 +50,9 @@ public class UserProfile {
     private Integer dailyCarbGoal;
     private Integer dailyFatGoal;
 
+    @Builder.Default
+    private Integer dailyWaterGoalMl = 2500;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
