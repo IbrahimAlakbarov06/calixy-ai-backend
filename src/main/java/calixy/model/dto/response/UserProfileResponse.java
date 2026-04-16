@@ -1,6 +1,8 @@
 package calixy.model.dto.response;
 
 import calixy.model.enums.ActivityLevel;
+import calixy.model.enums.AllergyType;
+import calixy.model.enums.DietaryRule;
 import calixy.model.enums.Gender;
 import calixy.model.enums.Goal;
 import lombok.AllArgsConstructor;
@@ -31,8 +33,12 @@ public class UserProfileResponse {
     private Integer dailyProteinGoal;
     private Integer dailyCarbGoal;
     private Integer dailyFatGoal;
+    private Integer dailyWaterGoalMl;
 
     private List<Goal> goals;
+    private List<AllergyType> allergies;
+    private List<String> customAllergies;
+    private List<DietaryRule> dietaryRules;
 
     private LocalDateTime createdAt;
 }

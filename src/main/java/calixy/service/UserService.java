@@ -1,11 +1,7 @@
 package calixy.service;
 
-import calixy.domain.entity.User;
-import calixy.domain.entity.UserGoal;
-import calixy.domain.entity.UserProfile;
-import calixy.domain.repo.UserGoalRepository;
-import calixy.domain.repo.UserProfileRepository;
-import calixy.domain.repo.UserRepository;
+import calixy.domain.entity.*;
+import calixy.domain.repo.*;
 import calixy.exception.InvalidInputException;
 import calixy.exception.NotFoundException;
 import calixy.mapper.UserMapper;
@@ -30,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +37,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final UserGoalRepository userGoalRepository;
+    private final UserAllergyRepository userAllergyRepository;
+    private final UserDietaryRuleRepository userDietaryRuleRepository;
     private final UserMapper userMapper;
     private final CalorieCalculator calorieCalculator;
     private final PasswordEncoder passwordEncoder;
@@ -76,14 +75,37 @@ public class UserService {
 
         userGoalRepository.deleteByUserId(user.getId());
         userGoalRepository.flush();
-
         List<UserGoal> userGoals = request.getGoals().stream()
-                .map(goal -> UserGoal.builder()
-                        .user(user)
-                        .goal(goal)
-                        .build())
+                .map(goal -> UserGoal.builder().user(user).goal(goal).build())
                 .collect(Collectors.toList());
         userGoalRepository.saveAllAndFlush(userGoals);
+
+        userAllergyRepository.deleteByUserId(user.getId());
+        userAllergyRepository.flush();
+        List<UserAllergy> allergies = new ArrayList<>();
+
+        if (request.getAllergies() != null) {
+            request.getAllergies().forEach(a ->
+                    allergies.add(UserAllergy.builder().user(user).allergy(a).build()));
+        }
+        if (request.getCustomAllergies() != null) {
+            request.getCustomAllergies().stream()
+                    .filter(c -> c != null && !c.isBlank())
+                    .forEach(c ->
+                            allergies.add(UserAllergy.builder().user(user).customAllergy(c.trim()).build()));
+        }
+        if (!allergies.isEmpty()) {
+            userAllergyRepository.saveAll(allergies);
+        }
+
+        userDietaryRuleRepository.deleteByUserId(user.getId());
+        userDietaryRuleRepository.flush();
+        if (request.getDietaryRules() != null && !request.getDietaryRules().isEmpty()) {
+            List<UserDietaryRule> rules = request.getDietaryRules().stream()
+                    .map(r -> UserDietaryRule.builder().user(user).rule(r).build())
+                    .collect(Collectors.toList());
+            userDietaryRuleRepository.saveAll(rules);
+        }
 
         User updatedUser = userRepository.findByIdWithProfileAndGoals(user.getId())
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -121,36 +143,31 @@ public class UserService {
     @Transactional
     @CacheEvict(value = "userProfile", key = "#user.id")
     public MessageResponse changePassword(Long id, ChangePasswordRequest request) {
-        User user= findUserById(id);
+        User user = findUserById(id);
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new InvalidInputException("Current password is incorrect");
         }
-
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new InvalidInputException("New password and confirmation do not match");
         }
-
         if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new InvalidInputException("New password must be different from current password");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-
         return new MessageResponse("Password updated successfully");
     }
 
     @Cacheable(value = "adminUsers", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<UserProfileResponse> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable)
-                .map(userMapper::toProfileResponse);
+        return userRepository.findAll(pageable).map(userMapper::toProfileResponse);
     }
 
     @Cacheable(value = "adminUser", key = "#id")
     public UserProfileResponse getUserById(Long id) {
-        User user = findUserById(id);
-        return userMapper.toProfileResponse(user);
+        return userMapper.toProfileResponse(findUserById(id));
     }
 
     @Cacheable(value = "adminUser", key = "#email")
@@ -173,7 +190,7 @@ public class UserService {
     @Transactional
     @CacheEvict(value = {"adminUser", "adminUsers"}, allEntries = true)
     public UserProfileResponse updateUserRole(Long id, UserRole role) {
-        User user =findUserById(id);
+        User user = findUserById(id);
         user.setRole(role);
         userRepository.save(user);
         return userMapper.toProfileResponse(user);
@@ -183,7 +200,6 @@ public class UserService {
     @CacheEvict(value = {"adminUser", "adminUsers", "userProfile"}, allEntries = true)
     public void deleteUser(Long id) {
         User user = findUserById(id);
-
         user.setStatus(UserStatus.DELETED);
         user.setActive(false);
         userRepository.save(user);

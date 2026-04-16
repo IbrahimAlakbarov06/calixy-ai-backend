@@ -1,25 +1,27 @@
 package calixy.mapper;
 
-import calixy.domain.entity.User;
-import calixy.domain.entity.UserGoal;
-import calixy.domain.entity.UserProfile;
+import calixy.domain.entity.*;
+import calixy.domain.repo.UserAllergyRepository;
+import calixy.domain.repo.UserDietaryRuleRepository;
 import calixy.model.dto.request.RegisterRequest;
 import calixy.model.dto.request.SetupProfileRequest;
 import calixy.model.dto.request.UpdateUserRequest;
 import calixy.model.dto.response.UserProfileResponse;
 import calixy.model.dto.response.UserResponse;
-import calixy.model.enums.AuthProvider;
-import calixy.model.enums.Goal;
-import calixy.model.enums.UserRole;
-import calixy.model.enums.UserStatus;
+import calixy.model.enums.*;
 import calixy.util.CalorieCalculator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class UserMapper {
+
+    private final UserAllergyRepository userAllergyRepository;
+    private final UserDietaryRuleRepository userDietaryRuleRepository;
 
     public UserResponse toResponse(User user) {
         String firstName = null;
@@ -60,6 +62,21 @@ public class UserMapper {
             }
         } catch (Exception ignored) {}
 
+        List<UserAllergy> allergyEntities = userAllergyRepository.findByUserId(user.getId());
+        List<AllergyType> allergies = allergyEntities.stream()
+                .filter(a -> a.getAllergy() != null)
+                .map(UserAllergy::getAllergy)
+                .collect(Collectors.toList());
+        List<String> customAllergies = allergyEntities.stream()
+                .filter(a -> a.getCustomAllergy() != null)
+                .map(UserAllergy::getCustomAllergy)
+                .collect(Collectors.toList());
+
+        List<DietaryRule> dietaryRules = userDietaryRuleRepository.findByUserId(user.getId())
+                .stream()
+                .map(UserDietaryRule::getRule)
+                .collect(Collectors.toList());
+
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .fullName(profile != null ? profile.getFullName() : null)
@@ -74,11 +91,14 @@ public class UserMapper {
                 .dailyProteinGoal(profile != null ? profile.getDailyProteinGoal() : null)
                 .dailyCarbGoal(profile != null ? profile.getDailyCarbGoal() : null)
                 .dailyFatGoal(profile != null ? profile.getDailyFatGoal() : null)
+                .dailyWaterGoalMl(profile != null ? profile.getDailyWaterGoalMl() : null)
                 .goals(goals)
+                .allergies(allergies)
+                .customAllergies(customAllergies)
+                .dietaryRules(dietaryRules)
                 .createdAt(user.getCreatedAt())
                 .build();
     }
-
 
     public User toEntity(RegisterRequest request) {
         return User.builder()
@@ -135,12 +155,12 @@ public class UserMapper {
                                   UpdateUserRequest request, CalorieCalculator.MacroResult macros) {
         if (request.getProfileImage() != null && !request.getProfileImage().isBlank())
             profile.setProfileImage(request.getProfileImage());
-        if (request.getFirstName() != null)    profile.setFirstName(request.getFirstName());
-        if (request.getLastName() != null)     profile.setLastName(request.getLastName());
-        if (request.getGender() != null)       profile.setGender(request.getGender());
-        if (request.getDateOfBirth() != null)  profile.setDateOfBirth(request.getDateOfBirth());
-        if (request.getHeight() != null)       profile.setHeight(request.getHeight());
-        if (request.getWeight() != null)       profile.setWeight(request.getWeight());
+        if (request.getFirstName() != null)     profile.setFirstName(request.getFirstName());
+        if (request.getLastName() != null)      profile.setLastName(request.getLastName());
+        if (request.getGender() != null)        profile.setGender(request.getGender());
+        if (request.getDateOfBirth() != null)   profile.setDateOfBirth(request.getDateOfBirth());
+        if (request.getHeight() != null)        profile.setHeight(request.getHeight());
+        if (request.getWeight() != null)        profile.setWeight(request.getWeight());
         if (request.getActivityLevel() != null) profile.setActivityLevel(request.getActivityLevel());
 
         if (macros != null) {

@@ -1,6 +1,8 @@
 package calixy.model.dto.request;
 
 import calixy.model.enums.ActivityLevel;
+import calixy.model.enums.AllergyType;
+import calixy.model.enums.DietaryRule;
 import calixy.model.enums.Gender;
 import calixy.model.enums.Goal;
 import jakarta.validation.constraints.NotBlank;
@@ -49,4 +51,10 @@ public class SetupProfileRequest {
     @NotEmpty(message = "At least one goal is required")
     @Size(max = 3, message = "Maximum 3 goals can be selected")
     private List<Goal> goals;
+
+    private List<AllergyType> allergies;
+
+    private List<String> customAllergies;
+
+    private List<DietaryRule> dietaryRules;
 }
