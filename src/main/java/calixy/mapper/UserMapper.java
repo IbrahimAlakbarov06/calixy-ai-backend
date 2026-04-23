@@ -77,6 +77,8 @@ public class UserMapper {
                 .map(UserDietaryRule::getRule)
                 .collect(Collectors.toList());
 
+        Goal currentGoal = goals.isEmpty() ? null : goals.get(0);
+
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .fullName(profile != null ? profile.getFullName() : null)
@@ -93,7 +95,7 @@ public class UserMapper {
                 .dailyCarbGoal(profile != null ? profile.getDailyCarbGoal() : null)
                 .dailyFatGoal(profile != null ? profile.getDailyFatGoal() : null)
                 .dailyWaterGoalMl(profile != null ? profile.getDailyWaterGoalMl() : null)
-                .goals(goals)
+                .goal(currentGoal)
                 .allergies(allergies)
                 .customAllergies(customAllergies)
                 .dietaryRules(dietaryRules)
@@ -133,6 +135,9 @@ public class UserMapper {
         return user;
     }
 
+    /**
+     * Called from UserService.setupProfile — request now has a single Goal field.
+     */
     public void applySetupProfile(UserProfile profile, SetupProfileRequest request,
                                   CalorieCalculator.MacroResult macros) {
         profile.setFirstName(request.getFirstName());

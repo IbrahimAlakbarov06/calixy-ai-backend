@@ -46,9 +46,8 @@ public class SetupProfileRequest {
     @NotNull(message = "Activity level is required")
     private ActivityLevel activityLevel;
 
-    @NotEmpty(message = "At least one goal is required")
-    @Size(max = 3, message = "Maximum 3 goals can be selected")
-    private List<Goal> goals;
+    @NotNull(message = "Goal is required")
+    private Goal goal;
 
     @DecimalMin(value = "20.0", message = "Target weight must be at least 20kg")
     @DecimalMax(value = "500.0", message = "Target weight must be at most 500kg")

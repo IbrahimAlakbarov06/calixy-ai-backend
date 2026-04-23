@@ -52,32 +52,31 @@ public class UserService {
     @CacheEvict(value = "userProfile", key = "#user.email")
     public UserProfileResponse setupProfile(User user, SetupProfileRequest request) {
         if (request.getActivityLevel() == null) {
-            request.setActivityLevel(ActivityLevel.MODERATE);
+            request.setActivityLevel(ActivityLevel.MODERATELY_ACTIVE);
         }
-        if (request.getGoals() == null || request.getGoals().isEmpty()) {
-            request.setGoals(List.of(Goal.MAINTAIN_WEIGHT));
+        if (request.getGoal() == null) {
+            request.setGoal(Goal.MAINTAIN_WEIGHT);
         }
 
-        calorieCalculator.validateGoals(request.getGoals());
-        calorieCalculator.validateTargetWeight(
-                request.getGoals(), request.getTargetWeight(), request.getWeight());
+        List<Goal> goals = List.of(request.getGoal());
+
+        calorieCalculator.validateGoals(goals);
+        calorieCalculator.validateTargetWeight(goals, request.getTargetWeight(), request.getWeight());
 
         UserProfile profile = userProfileRepository.findByUserId(user.getId())
                 .orElse(UserProfile.builder().user(user).build());
 
         CalorieCalculator.MacroResult macros = calorieCalculator.calculateAll(
                 request.getGender(), request.getWeight(), request.getHeight(),
-                request.getAge(), request.getActivityLevel(), request.getGoals());
+                request.getAge(), request.getActivityLevel(), goals);
 
         userMapper.applySetupProfile(profile, request, macros);
         userProfileRepository.save(profile);
 
         userGoalRepository.deleteByUserId(user.getId());
         userGoalRepository.flush();
-        List<UserGoal> userGoals = request.getGoals().stream()
-                .map(goal -> UserGoal.builder().user(user).goal(goal).build())
-                .collect(Collectors.toList());
-        userGoalRepository.saveAllAndFlush(userGoals);
+        UserGoal userGoal = UserGoal.builder().user(user).goal(request.getGoal()).build();
+        userGoalRepository.saveAndFlush(userGoal);
 
         userAllergyRepository.deleteByUserId(user.getId());
         userAllergyRepository.flush();

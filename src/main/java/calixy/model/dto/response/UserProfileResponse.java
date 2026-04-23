@@ -35,7 +35,8 @@ public class UserProfileResponse {
     private Integer dailyFatGoal;
     private Integer dailyWaterGoalMl;
 
-    private List<Goal> goals;
+    private Goal goal;
+
     private List<AllergyType> allergies;
     private List<String> customAllergies;
     private List<DietaryRule> dietaryRules;

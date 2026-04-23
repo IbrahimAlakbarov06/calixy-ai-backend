@@ -14,38 +14,28 @@ public class CalorieCalculator {
 
     public void validateGoals(List<Goal> goals) {
         if (goals == null || goals.isEmpty()) {
-            throw new BusinessException("At least one goal must be selected");
+            throw new BusinessException("Exactly one goal must be selected");
         }
-        if (goals.size() > 3) {
-            throw new BusinessException("Maximum 3 goals can be selected");
-        }
-        if (goals.contains(Goal.LOSE_WEIGHT) && goals.contains(Goal.GAIN_WEIGHT)) {
-            throw new BusinessException("Cannot select both Lose Weight and Gain Weight at the same time");
-        }
-        if (goals.contains(Goal.LOSE_WEIGHT) && goals.contains(Goal.GAIN_MUSCLE)) {
-            throw new BusinessException("Cannot select both Lose Weight and Gain Muscle at the same time");
-        }
-        if (goals.contains(Goal.MAINTAIN_WEIGHT) && goals.contains(Goal.GAIN_WEIGHT)) {
-            throw new BusinessException("Cannot select both Maintain Weight and Gain Weight at the same time");
-        }
-        if (goals.contains(Goal.MAINTAIN_WEIGHT) && goals.contains(Goal.LOSE_WEIGHT)) {
-            throw new BusinessException("Cannot select both Maintain Weight and Lose Weight at the same time");
+        if (goals.size() > 1) {
+            throw new BusinessException("Only one goal can be selected at a time");
         }
     }
 
     public void validateTargetWeight(List<Goal> goals, Double targetWeight, double currentWeight) {
-        if (goals == null) return;
+        if (goals == null || goals.isEmpty()) return;
 
-        boolean needsTarget = goals.contains(Goal.LOSE_WEIGHT) || goals.contains(Goal.GAIN_WEIGHT);
+        Goal goal = goals.get(0);
+
+        boolean needsTarget = goal == Goal.LOSE_WEIGHT || goal == Goal.GAIN_WEIGHT;
         if (needsTarget && targetWeight == null) {
             throw new BusinessException("Target weight is required when goal is Lose Weight or Gain Weight");
         }
 
         if (targetWeight != null) {
-            if (goals.contains(Goal.LOSE_WEIGHT) && targetWeight >= currentWeight) {
+            if (goal == Goal.LOSE_WEIGHT && targetWeight >= currentWeight) {
                 throw new BusinessException("Target weight must be less than current weight for Lose Weight goal");
             }
-            if (goals.contains(Goal.GAIN_WEIGHT) && targetWeight <= currentWeight) {
+            if (goal == Goal.GAIN_WEIGHT && targetWeight <= currentWeight) {
                 throw new BusinessException("Target weight must be greater than current weight for Gain Weight goal");
             }
         }
@@ -67,13 +57,13 @@ public class CalorieCalculator {
     }
 
     public int calculateProteinGoal(double weightKg, List<Goal> goals) {
-        double gramsPerKg;
         Goal primary = getPrimaryGoal(goals);
-        gramsPerKg = switch (primary) {
-            case GAIN_MUSCLE -> 2.0;
-            case LOSE_WEIGHT -> 2.0;
-            case GAIN_WEIGHT -> 1.6;
-            default -> 1.6;
+        double gramsPerKg = switch (primary) {
+            case LOSE_WEIGHT     -> 2.2;
+            case BUILD_MUSCLE    -> 2.0;
+            case GAIN_WEIGHT     -> 1.8;
+            case MAINTAIN_WEIGHT -> 1.6;
+            case JUST_BE_HEALTHIER -> 1.4;
         };
         return (int) Math.round(weightKg * gramsPerKg);
     }
@@ -81,10 +71,11 @@ public class CalorieCalculator {
     public int calculateCarbGoal(int dailyCalories, List<Goal> goals) {
         Goal primary = getPrimaryGoal(goals);
         double carbPercent = switch (primary) {
-            case GAIN_WEIGHT -> 0.55;
-            case GAIN_MUSCLE -> 0.45;
-            case LOSE_WEIGHT -> 0.35;
-            default -> 0.50;
+            case GAIN_WEIGHT       -> 0.55;
+            case BUILD_MUSCLE      -> 0.45;
+            case MAINTAIN_WEIGHT   -> 0.50;
+            case JUST_BE_HEALTHIER -> 0.50;
+            case LOSE_WEIGHT       -> 0.35;
         };
         return (int) Math.round((dailyCalories * carbPercent) / 4.0);
     }
@@ -92,8 +83,9 @@ public class CalorieCalculator {
     public int calculateFatGoal(int dailyCalories, List<Goal> goals) {
         Goal primary = getPrimaryGoal(goals);
         double fatPercent = switch (primary) {
-            case LOSE_WEIGHT -> 0.30;
-            default -> 0.25;
+            case LOSE_WEIGHT       -> 0.30;
+            case JUST_BE_HEALTHIER -> 0.30;
+            default                -> 0.25;
         };
         return (int) Math.round((dailyCalories * fatPercent) / 9.0);
     }
@@ -116,39 +108,36 @@ public class CalorieCalculator {
     public MacroResult calculateAll(Gender gender, double weightKg, double heightCm,
                                     int age, ActivityLevel activityLevel, List<Goal> goals) {
         int calories = calculateDailyCalories(gender, weightKg, heightCm, age, activityLevel, goals);
-        int protein = calculateProteinGoal(weightKg, goals);
-        int carbs = calculateCarbGoal(calories, goals);
-        int fat = calculateFatGoal(calories, goals);
+        int protein  = calculateProteinGoal(weightKg, goals);
+        int carbs    = calculateCarbGoal(calories, goals);
+        int fat      = calculateFatGoal(calories, goals);
         return new MacroResult(calories, protein, carbs, fat);
     }
 
     private Goal getPrimaryGoal(List<Goal> goals) {
         if (goals == null || goals.isEmpty()) return Goal.MAINTAIN_WEIGHT;
-        if (goals.contains(Goal.LOSE_WEIGHT)) return Goal.LOSE_WEIGHT;
-        if (goals.contains(Goal.GAIN_MUSCLE)) return Goal.GAIN_MUSCLE;
-        if (goals.contains(Goal.GAIN_WEIGHT)) return Goal.GAIN_WEIGHT;
-        if (goals.contains(Goal.MAINTAIN_WEIGHT)) return Goal.MAINTAIN_WEIGHT;
-        return Goal.MAINTAIN_WEIGHT;
+        return goals.get(0);
     }
 
     private double getCalorieAdjustment(List<Goal> goals) {
         Goal primary = getPrimaryGoal(goals);
         return switch (primary) {
-            case LOSE_WEIGHT -> -500;
-            case GAIN_WEIGHT -> +500;
-            case GAIN_MUSCLE -> +250;
-            default -> 0;
+            case LOSE_WEIGHT       -> -500;
+            case GAIN_WEIGHT       -> +500;
+            case BUILD_MUSCLE      -> +250;
+            case MAINTAIN_WEIGHT   ->    0;
+            case JUST_BE_HEALTHIER ->    0;
         };
     }
 
     private double getActivityMultiplier(ActivityLevel level) {
         if (level == null) return 1.2;
         return switch (level) {
-            case SEDENTARY -> 1.2;
-            case LIGHT -> 1.375;
-            case MODERATE -> 1.55;
-            case ACTIVE -> 1.725;
-            case VERY_ACTIVE -> 1.9;
+            case SEDENTARY         -> 1.2;
+            case LIGHT_WALKER      -> 1.375;
+            case MODERATELY_ACTIVE -> 1.55;
+            case GYM_REGULAR       -> 1.725;
+            case YOGA_ZEN          -> 1.375;
         };
     }
 }
