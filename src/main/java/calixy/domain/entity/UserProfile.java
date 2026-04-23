@@ -7,7 +7,6 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,11 +35,13 @@ public class UserProfile {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    private LocalDate dateOfBirth;
+    private Integer age;
 
     private Double height;
 
     private Double weight;
+
+    private Double targetWeight;
 
     @Enumerated(EnumType.STRING)
     private ActivityLevel activityLevel;
@@ -61,6 +62,7 @@ public class UserProfile {
     private LocalDateTime updatedAt;
 
     public String getFullName() {
-        return firstName + " " + lastName;
+        if (firstName == null && lastName == null) return null;
+        return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
     }
 }

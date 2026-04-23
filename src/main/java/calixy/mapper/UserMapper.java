@@ -83,9 +83,10 @@ public class UserMapper {
                 .email(user.getEmail())
                 .profileImage(profile != null ? profile.getProfileImage() : null)
                 .gender(profile != null ? profile.getGender() : null)
-                .dateOfBirth(profile != null ? profile.getDateOfBirth() : null)
+                .age(profile != null ? profile.getAge() : null)
                 .height(profile != null ? profile.getHeight() : null)
                 .weight(profile != null ? profile.getWeight() : null)
+                .targetWeight(profile != null ? profile.getTargetWeight() : null)
                 .activityLevel(profile != null ? profile.getActivityLevel() : null)
                 .dailyCalorieGoal(profile != null ? profile.getDailyCalorieGoal() : null)
                 .dailyProteinGoal(profile != null ? profile.getDailyProteinGoal() : null)
@@ -137,9 +138,10 @@ public class UserMapper {
         profile.setFirstName(request.getFirstName());
         profile.setLastName(request.getLastName());
         profile.setGender(request.getGender());
-        profile.setDateOfBirth(request.getDateOfBirth());
+        profile.setAge(request.getAge());
         profile.setHeight(request.getHeight());
         profile.setWeight(request.getWeight());
+        profile.setTargetWeight(request.getTargetWeight());
         profile.setActivityLevel(request.getActivityLevel());
         profile.setDailyCalorieGoal(macros.getCalories());
         profile.setDailyProteinGoal(macros.getProtein());
@@ -158,7 +160,7 @@ public class UserMapper {
         if (request.getFirstName() != null)     profile.setFirstName(request.getFirstName());
         if (request.getLastName() != null)      profile.setLastName(request.getLastName());
         if (request.getGender() != null)        profile.setGender(request.getGender());
-        if (request.getDateOfBirth() != null)   profile.setDateOfBirth(request.getDateOfBirth());
+        if (request.getAge() != null)           profile.setAge(request.getAge());
         if (request.getHeight() != null)        profile.setHeight(request.getHeight());
         if (request.getWeight() != null)        profile.setWeight(request.getWeight());
         if (request.getActivityLevel() != null) profile.setActivityLevel(request.getActivityLevel());

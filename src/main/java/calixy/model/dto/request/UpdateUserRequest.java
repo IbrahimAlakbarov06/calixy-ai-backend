@@ -2,13 +2,13 @@ package calixy.model.dto.request;
 
 import calixy.model.enums.ActivityLevel;
 import calixy.model.enums.Gender;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
@@ -26,7 +26,9 @@ public class UpdateUserRequest {
 
     private Gender gender;
 
-    private LocalDate dateOfBirth;
+    @Min(value = 10, message = "Age must be at least 10")
+    @Max(value = 120, message = "Age must be at most 120")
+    private Integer age;
 
     private Double height;
 
@@ -34,4 +36,3 @@ public class UpdateUserRequest {
 
     private ActivityLevel activityLevel;
 }
-

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-
 @Component
 public class CalorieCalculator {
 
@@ -29,9 +28,26 @@ public class CalorieCalculator {
         if (goals.contains(Goal.MAINTAIN_WEIGHT) && goals.contains(Goal.GAIN_WEIGHT)) {
             throw new BusinessException("Cannot select both Maintain Weight and Gain Weight at the same time");
         }
-
         if (goals.contains(Goal.MAINTAIN_WEIGHT) && goals.contains(Goal.LOSE_WEIGHT)) {
             throw new BusinessException("Cannot select both Maintain Weight and Lose Weight at the same time");
+        }
+    }
+
+    public void validateTargetWeight(List<Goal> goals, Double targetWeight, double currentWeight) {
+        if (goals == null) return;
+
+        boolean needsTarget = goals.contains(Goal.LOSE_WEIGHT) || goals.contains(Goal.GAIN_WEIGHT);
+        if (needsTarget && targetWeight == null) {
+            throw new BusinessException("Target weight is required when goal is Lose Weight or Gain Weight");
+        }
+
+        if (targetWeight != null) {
+            if (goals.contains(Goal.LOSE_WEIGHT) && targetWeight >= currentWeight) {
+                throw new BusinessException("Target weight must be less than current weight for Lose Weight goal");
+            }
+            if (goals.contains(Goal.GAIN_WEIGHT) && targetWeight <= currentWeight) {
+                throw new BusinessException("Target weight must be greater than current weight for Gain Weight goal");
+            }
         }
     }
 
@@ -45,7 +61,6 @@ public class CalorieCalculator {
         }
 
         double tdee = bmr * getActivityMultiplier(activityLevel);
-
         double adjustment = getCalorieAdjustment(goals);
 
         return (int) Math.round(tdee + adjustment);
@@ -82,7 +97,6 @@ public class CalorieCalculator {
         };
         return (int) Math.round((dailyCalories * fatPercent) / 9.0);
     }
-
 
     @Getter
     public static class MacroResult {

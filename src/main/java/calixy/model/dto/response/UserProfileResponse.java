@@ -10,7 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,9 +24,10 @@ public class UserProfileResponse {
     private String profileImage;
 
     private Gender gender;
-    private LocalDate dateOfBirth;
+    private Integer age;
     private Double height;
     private Double weight;
+    private Double targetWeight;
     private ActivityLevel activityLevel;
     private Integer dailyCalorieGoal;
     private Integer dailyProteinGoal;

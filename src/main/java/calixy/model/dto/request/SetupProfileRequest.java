@@ -5,16 +5,12 @@ import calixy.model.enums.AllergyType;
 import calixy.model.enums.DietaryRule;
 import calixy.model.enums.Gender;
 import calixy.model.enums.Goal;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -36,8 +32,10 @@ public class SetupProfileRequest {
     @NotNull(message = "Gender is required")
     private Gender gender;
 
-    @NotNull(message = "Date of birth is required")
-    private LocalDate dateOfBirth;
+    @NotNull(message = "Age is required")
+    @Min(value = 10, message = "Age must be at least 10")
+    @Max(value = 120, message = "Age must be at most 120")
+    private Integer age;
 
     @NotNull(message = "Height is required")
     private Double height;
@@ -51,6 +49,10 @@ public class SetupProfileRequest {
     @NotEmpty(message = "At least one goal is required")
     @Size(max = 3, message = "Maximum 3 goals can be selected")
     private List<Goal> goals;
+
+    @DecimalMin(value = "20.0", message = "Target weight must be at least 20kg")
+    @DecimalMax(value = "500.0", message = "Target weight must be at most 500kg")
+    private Double targetWeight;
 
     private List<AllergyType> allergies;
 

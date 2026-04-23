@@ -24,8 +24,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,14 +59,15 @@ public class UserService {
         }
 
         calorieCalculator.validateGoals(request.getGoals());
+        calorieCalculator.validateTargetWeight(
+                request.getGoals(), request.getTargetWeight(), request.getWeight());
 
         UserProfile profile = userProfileRepository.findByUserId(user.getId())
                 .orElse(UserProfile.builder().user(user).build());
 
-        int age = Period.between(request.getDateOfBirth(), LocalDate.now()).getYears();
         CalorieCalculator.MacroResult macros = calorieCalculator.calculateAll(
                 request.getGender(), request.getWeight(), request.getHeight(),
-                age, request.getActivityLevel(), request.getGoals());
+                request.getAge(), request.getActivityLevel(), request.getGoals());
 
         userMapper.applySetupProfile(profile, request, macros);
         userProfileRepository.save(profile);
@@ -83,7 +82,6 @@ public class UserService {
         userAllergyRepository.deleteByUserId(user.getId());
         userAllergyRepository.flush();
         List<UserAllergy> allergies = new ArrayList<>();
-
         if (request.getAllergies() != null) {
             request.getAllergies().forEach(a ->
                     allergies.add(UserAllergy.builder().user(user).allergy(a).build()));
@@ -120,15 +118,14 @@ public class UserService {
 
         CalorieCalculator.MacroResult macros = null;
         if (profile.getHeight() != null && profile.getWeight() != null
-                && profile.getGender() != null && profile.getDateOfBirth() != null) {
+                && profile.getGender() != null && profile.getAge() != null) {
 
-            int age = Period.between(profile.getDateOfBirth(), LocalDate.now()).getYears();
             List<Goal> goals = userGoalRepository.findByUserId(user.getId())
                     .stream().map(UserGoal::getGoal).collect(Collectors.toList());
 
             macros = calorieCalculator.calculateAll(
                     profile.getGender(), profile.getWeight(), profile.getHeight(),
-                    age, profile.getActivityLevel(), goals);
+                    profile.getAge(), profile.getActivityLevel(), goals);
         }
 
         userMapper.updateFromRequest(user, profile, request, macros);
