@@ -10,14 +10,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Optional;
 
 @Component
@@ -36,15 +34,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
+        final String jwt = authHeader.substring(7);
 
         try {
             if (redisService.isBlacklisted(jwt)) {
@@ -52,27 +48,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            userEmail = jwtService.extractEmail(jwt);
+            final String userEmail = jwtService.extractEmail(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
                 Optional<User> userOptional = userRepository.findByEmail(userEmail);
 
                 if (userOptional.isPresent()) {
                     User user = userOptional.get();
-                    if (jwtService.validateToken(jwt, user.getEmail())) {
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                user,
-                                null,
-                                Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()))
+
+                    if (jwtService.validateToken(jwt, user.getEmail())
+                            && user.isEnabled()
+                            && user.isAccountNonLocked()) {
+
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(
+                                        user,
+                                        null,
+                                        user.getAuthorities()
+                                );
+                        authToken.setDetails(
+                                new WebAuthenticationDetailsSource().buildDetails(request)
                         );
-                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                     }
                 }
             }
+
         } catch (Exception e) {
-            logger.error("JWT authentication failed", e);
+            logger.error("JWT authentication failed: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);

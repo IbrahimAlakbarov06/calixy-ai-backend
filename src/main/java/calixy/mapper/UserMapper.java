@@ -135,9 +135,6 @@ public class UserMapper {
         return user;
     }
 
-    /**
-     * Called from UserService.setupProfile — request now has a single Goal field.
-     */
     public void applySetupProfile(UserProfile profile, SetupProfileRequest request,
                                   CalorieCalculator.MacroResult macros) {
         profile.setFirstName(request.getFirstName());

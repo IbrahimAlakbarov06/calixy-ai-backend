@@ -156,7 +156,6 @@ public class UserService {
         return new MessageResponse("Password updated successfully");
     }
 
-    @Cacheable(value = "adminUsers", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<UserProfileResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable).map(userMapper::toProfileResponse);
     }

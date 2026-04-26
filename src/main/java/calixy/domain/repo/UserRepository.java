@@ -3,9 +3,9 @@ package calixy.domain.repo;
 import calixy.domain.entity.User;
 import calixy.model.enums.UserRole;
 import calixy.model.enums.UserStatus;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);

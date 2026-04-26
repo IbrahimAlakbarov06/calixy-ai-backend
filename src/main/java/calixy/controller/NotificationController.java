@@ -8,6 +8,7 @@ import calixy.model.dto.response.NotificationResponse;
 import calixy.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,7 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN_ROLE')")
     public ResponseEntity<NotificationResponse> create(
             @RequestBody NotificationRequest request) {
         return ResponseEntity.ok(notificationService.createNotification(request));
