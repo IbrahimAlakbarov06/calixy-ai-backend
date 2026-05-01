@@ -11,5 +11,5 @@ public interface UserSupplementRepository extends JpaRepository<UserSupplement, 
 
     List<UserSupplement> findByUserIdAndIsActiveTrue(Long userId);
 
-    boolean existsByUserIdAndSupplementId(Long userId, Long supplementId);
+    boolean existsByUserIdAndSupplementIdAndIsActiveTrue(Long userId, Long supplementId);
 }

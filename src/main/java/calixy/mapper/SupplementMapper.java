@@ -53,6 +53,10 @@ public class SupplementMapper {
             List<SupplementLog> logs,
             LocalDate date) {
 
+        LocalDate today = LocalDate.now();
+        boolean isPast   = date.isBefore(today);
+        boolean isFuture = date.isAfter(today);
+
         Map<Long, SupplementLog> logMap = logs.stream()
                 .collect(Collectors.toMap(
                         l -> l.getUserSupplement().getId(),
@@ -62,6 +66,18 @@ public class SupplementMapper {
 
         List<SupplementChecklistItem> items = userSupplements.stream().map(us -> {
             SupplementLog log = logMap.get(us.getId());
+
+            SupplementStatus status;
+            if (log != null) {
+                status = log.getStatus();
+            } else if (isPast) {
+                status = SupplementStatus.SKIPPED;
+            } else if (isFuture) {
+                status = SupplementStatus.PENDING;
+            } else {
+                status = SupplementStatus.PENDING;
+            }
+
             return SupplementChecklistItem.builder()
                     .userSupplementId(us.getId())
                     .supplementLogId(log != null ? log.getId() : null)
@@ -70,13 +86,14 @@ public class SupplementMapper {
                     .isCustom(us.getSupplement().getIsCustom())
                     .timing(us.getTiming())
                     .reminderTime(us.getReminderTime())
-                    .status(log != null ? log.getStatus() : null)
+                    .status(status)
                     .build();
         }).collect(Collectors.toList());
 
-        long taken   = items.stream().filter(i -> i.getStatus() == SupplementStatus.TAKEN).count();
-        long skipped = items.stream().filter(i -> i.getStatus() == SupplementStatus.SKIPPED).count();
-        long pending = items.stream().filter(i -> i.getStatus() == null).count();
+        long taken     = items.stream().filter(i -> i.getStatus() == SupplementStatus.TAKEN).count();
+        long skipped   = items.stream().filter(i -> i.getStatus() == SupplementStatus.SKIPPED).count();
+        long postponed = items.stream().filter(i -> i.getStatus() == SupplementStatus.POSTPONED).count();
+        long pending   = items.stream().filter(i -> i.getStatus() == SupplementStatus.PENDING).count();
 
         return DailySupplementChecklistResponse.builder()
                 .date(date)
@@ -84,6 +101,7 @@ public class SupplementMapper {
                 .total(items.size())
                 .taken((int) taken)
                 .skipped((int) skipped)
+                .postponed((int) postponed)
                 .pending((int) pending)
                 .build();
     }

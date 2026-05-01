@@ -15,5 +15,6 @@ public class DailySupplementChecklistResponse {
     private Integer total;
     private Integer taken;
     private Integer skipped;
+    private Integer postponed;
     private Integer pending;
 }

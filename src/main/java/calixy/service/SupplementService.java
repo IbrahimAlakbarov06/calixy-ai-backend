@@ -43,7 +43,7 @@ public class SupplementService {
         Supplement supplement;
 
         if (request.getSupplementId() != null) {
-            if (userSupplementRepository.existsByUserIdAndSupplementId(
+            if (userSupplementRepository.existsByUserIdAndSupplementIdAndIsActiveTrue(
                     user.getId(), request.getSupplementId())) {
                 throw new AlreadyExistsException("This supplement is already in your list");
             }
