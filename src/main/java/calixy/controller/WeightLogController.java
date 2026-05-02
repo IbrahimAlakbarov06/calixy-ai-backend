@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/weight")
+@RequestMapping("/api/weight-logs")
 @RequiredArgsConstructor
 public class WeightLogController {
 
     private final WeightLogService weightLogService;
 
-    @PostMapping("/log")
+    @PostMapping
     public ResponseEntity<WeightLogResponse> logWeight(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody WeightLogRequest request) {

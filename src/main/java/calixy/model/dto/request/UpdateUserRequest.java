@@ -2,13 +2,8 @@ package calixy.model.dto.request;
 
 import calixy.model.enums.ActivityLevel;
 import calixy.model.enums.Gender;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 @Data
 @AllArgsConstructor
@@ -31,8 +26,8 @@ public class UpdateUserRequest {
     private Integer age;
 
     private Double height;
-
     private Double weight;
-
     private ActivityLevel activityLevel;
+
+    private String language;
 }

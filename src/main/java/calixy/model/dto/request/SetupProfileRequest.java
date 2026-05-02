@@ -6,10 +6,7 @@ import calixy.model.enums.DietaryRule;
 import calixy.model.enums.Gender;
 import calixy.model.enums.Goal;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -54,8 +51,8 @@ public class SetupProfileRequest {
     private Double targetWeight;
 
     private List<AllergyType> allergies;
-
     private List<String> customAllergies;
-
     private List<DietaryRule> dietaryRules;
+
+    private String language;
 }

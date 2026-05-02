@@ -29,8 +29,23 @@ public class DietPlan {
     @Column(name = "name_az")
     private String nameAz;
 
+    @Column(name = "name_ru")
+    private String nameRu;
+
+    @Column(name = "name_tr")
+    private String nameTr;
+
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "description_az", columnDefinition = "TEXT")
+    private String descriptionAz;
+
+    @Column(name = "description_ru", columnDefinition = "TEXT")
+    private String descriptionRu;
+
+    @Column(name = "description_tr", columnDefinition = "TEXT")
+    private String descriptionTr;
 
     private String imageUrl;
 

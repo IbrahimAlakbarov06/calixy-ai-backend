@@ -3,6 +3,8 @@ package calixy.mapper;
 import calixy.domain.entity.*;
 import calixy.model.dto.response.*;
 import calixy.model.enums.SupplementStatus;
+import calixy.util.LanguageUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -11,15 +13,25 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class SupplementMapper {
+
+    private final LanguageUtil languageUtil;
 
     public SupplementResponse toResponse(Supplement s) {
         if (s == null) return null;
         return SupplementResponse.builder()
                 .id(s.getId())
-                .name(s.getName())
-                .nameAz(s.getNameAz())
-                .description(s.getDescription())
+                .name(languageUtil.resolve(
+                        s.getName(),
+                        s.getNameAz(),
+                        s.getNameRu(),
+                        s.getNameTr()))
+                .description(languageUtil.resolve(
+                        s.getDescription(),
+                        s.getDescriptionAz(),
+                        s.getDescriptionRu(),
+                        s.getDescriptionTr()))
                 .iconUrl(s.getIconUrl())
                 .isCustom(s.getIsCustom())
                 .build();

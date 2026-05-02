@@ -13,8 +13,9 @@ public class UpdateFoodRequest {
     @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
     private String name;
 
-    @Size(max = 100)
     private String nameAz;
+    private String nameRu;
+    private String nameTr;
 
     @DecimalMin(value = "0.0", message = "Calories cannot be negative")
     @DecimalMax(value = "9000.0", message = "Calories seem too high")

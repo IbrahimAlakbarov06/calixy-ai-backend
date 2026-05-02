@@ -15,7 +15,6 @@ public class DietPlanResponse {
 
     private Long id;
     private String name;
-    private String nameAz;
     private String description;
     private String imageUrl;
 

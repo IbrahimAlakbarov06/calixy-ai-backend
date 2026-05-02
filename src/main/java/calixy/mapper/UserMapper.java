@@ -150,13 +150,18 @@ public class UserMapper {
         profile.setDailyCarbGoal(macros.getCarbs());
         profile.setDailyFatGoal(macros.getFat());
 
+        if (request.getLanguage() != null && !request.getLanguage().isBlank()) {
+            profile.setLanguage(request.getLanguage());
+        }
+
         if (request.getProfileImage() != null && !request.getProfileImage().isBlank()) {
             profile.setProfileImage(request.getProfileImage());
         }
     }
 
     public void updateFromRequest(User user, UserProfile profile,
-                                  UpdateUserRequest request, CalorieCalculator.MacroResult macros) {
+                                  UpdateUserRequest request,
+                                  CalorieCalculator.MacroResult macros) {
         if (request.getProfileImage() != null && !request.getProfileImage().isBlank())
             profile.setProfileImage(request.getProfileImage());
         if (request.getFirstName() != null)     profile.setFirstName(request.getFirstName());
@@ -166,6 +171,10 @@ public class UserMapper {
         if (request.getHeight() != null)        profile.setHeight(request.getHeight());
         if (request.getWeight() != null)        profile.setWeight(request.getWeight());
         if (request.getActivityLevel() != null) profile.setActivityLevel(request.getActivityLevel());
+
+        if (request.getLanguage() != null && !request.getLanguage().isBlank()) {
+            profile.setLanguage(request.getLanguage());
+        }
 
         if (macros != null) {
             profile.setDailyCalorieGoal(macros.getCalories());

@@ -28,6 +28,12 @@ public class Food {
     @Column(name = "name_az")
     private String nameAz;
 
+    @Column(name = "name_ru")
+    private String nameRu;
+
+    @Column(name = "name_tr")
+    private String nameTr;
+
     @Column(nullable = false)
     private Double caloriesPer100g;
 

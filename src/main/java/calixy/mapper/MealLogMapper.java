@@ -4,6 +4,8 @@ import calixy.domain.entity.*;
 import calixy.model.dto.request.LogMealRequest;
 import calixy.model.dto.response.DailySummaryResponse;
 import calixy.model.dto.response.MealLogResponse;
+import calixy.util.LanguageUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -12,7 +14,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class MealLogMapper {
+
+    private final LanguageUtil languageUtil;
 
     public MealLog toEntity(User user, Food food, DietPlan dietPlan,
                             LogMealRequest request,
@@ -35,14 +40,33 @@ public class MealLogMapper {
     public MealLogResponse toResponse(MealLog log) {
         if (log == null) return null;
 
+        String foodName = null;
+        if (log.getFood() != null) {
+            foodName = languageUtil.resolve(
+                    log.getFood().getName(),
+                    log.getFood().getNameAz(),
+                    log.getFood().getNameRu(),
+                    log.getFood().getNameTr()
+            );
+        }
+
+        String dietPlanName = null;
+        if (log.getDietPlan() != null) {
+            dietPlanName = languageUtil.resolve(
+                    log.getDietPlan().getName(),
+                    log.getDietPlan().getNameAz(),
+                    log.getDietPlan().getNameRu(),
+                    log.getDietPlan().getNameTr()
+            );
+        }
+
         return MealLogResponse.builder()
                 .id(log.getId())
                 .mealType(log.getMealType())
                 .foodId(log.getFood() != null ? log.getFood().getId() : null)
-                .foodName(log.getFood() != null ? log.getFood().getName() : null)
-                .foodNameAz(log.getFood() != null ? log.getFood().getNameAz() : null)
+                .foodName(foodName)
                 .dietPlanId(log.getDietPlan() != null ? log.getDietPlan().getId() : null)
-                .dietPlanName(log.getDietPlan() != null ? log.getDietPlan().getName() : null)
+                .dietPlanName(dietPlanName)
                 .portionGrams(log.getPortionGrams())
                 .calories(log.getCalories())
                 .protein(log.getProtein())

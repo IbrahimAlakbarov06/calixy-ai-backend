@@ -16,7 +16,13 @@ public class CreateDietPlanRequest {
     private String name;
 
     private String nameAz;
+    private String nameRu;
+    private String nameTr;
+
     private String description;
+    private String descriptionAz;
+    private String descriptionRu;
+    private String descriptionTr;
     private String imageUrl;
 
     @NotNull(message = "Calories is required")

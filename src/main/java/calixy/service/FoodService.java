@@ -20,13 +20,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FoodService {
 
+    private static final String LANG =
+            "T(org.springframework.context.i18n.LocaleContextHolder).getLocale().getLanguage()";
+
     private final FoodRepository foodRepository;
     private final FoodMapper foodMapper;
 
-    @Cacheable(value = "foods", key = "'all_' + #category + '_' + #query")
+//    @Cacheable(
+//            value = "foods",
+//            key = "'all_' + #category + '_' + #query + '_' + " + LANG
+//    )
     @Transactional(readOnly = true)
     public List<FoodResponse> getFoods(FoodCategory category, String query) {
-
         List<Food> foods;
 
         if (category != null && query != null && !query.isBlank()) {
@@ -42,7 +47,10 @@ public class FoodService {
         return foodMapper.toListResponse(foods);
     }
 
-    @Cacheable(value = "foods", key = "#id")
+//    @Cacheable(
+//            value = "foods",
+//            key = "#id + '_' + " + LANG
+//    )
     @Transactional(readOnly = true)
     public FoodResponse getFoodById(Long id) {
         Food food = foodRepository.findById(id)
@@ -59,9 +67,7 @@ public class FoodService {
     @Transactional
     public FoodResponse createFood(CreateFoodRequest request) {
         Food food = foodMapper.toEntity(request);
-        Food saved = foodRepository.save(food);
-
-        return foodMapper.toResponse(saved);
+        return foodMapper.toResponse(foodRepository.save(food));
     }
 
     @CacheEvict(value = "foods", allEntries = true)
@@ -70,11 +76,8 @@ public class FoodService {
         Food food = foodRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Food not found with id: " + id));
 
-
         foodMapper.applyUpdate(food, request);
-        Food saved = foodRepository.save(food);
-
-        return foodMapper.toResponse(saved);
+        return foodMapper.toResponse(foodRepository.save(food));
     }
 
     @CacheEvict(value = "foods", allEntries = true)

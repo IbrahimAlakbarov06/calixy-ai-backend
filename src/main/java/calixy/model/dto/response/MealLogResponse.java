@@ -19,7 +19,6 @@ public class MealLogResponse {
 
     private Long foodId;
     private String foodName;
-    private String foodNameAz;
 
     private Long dietPlanId;
     private String dietPlanName;

@@ -54,6 +54,10 @@ public class UserProfile {
     @Builder.Default
     private Integer dailyWaterGoalMl = 2500;
 
+    @Column(length = 5)
+    @Builder.Default
+    private String language = "en";
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

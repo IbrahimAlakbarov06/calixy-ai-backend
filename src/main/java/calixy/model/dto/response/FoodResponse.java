@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 public class FoodResponse {
     private Long id;
     private String name;
-    private String nameAz;
 
     private Double caloriesPer100g;
     private Double proteinPer100g;
