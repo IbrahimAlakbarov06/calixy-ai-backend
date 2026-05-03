@@ -7,6 +7,7 @@ import calixy.model.dto.response.MessageResponse;
 import calixy.model.dto.response.UserDietPlanResponse;
 import calixy.model.enums.TargetGoal;
 import calixy.service.DietPlanService;
+import calixy.util.LanguageUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,29 +23,30 @@ import java.util.List;
 public class DietPlanController {
 
     private final DietPlanService dietPlanService;
+    private final LanguageUtil languageUtil;
 
     @GetMapping
     public ResponseEntity<List<DietPlanResponse>> getPlans(
             @RequestParam(required = false) TargetGoal targetGoal) {
-        return ResponseEntity.ok(dietPlanService.getPlans(targetGoal));
+        return ResponseEntity.ok(dietPlanService.getPlans(targetGoal, languageUtil.getLang()));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<DietPlanResponse> getPlanById(@PathVariable Long id) {
-        return ResponseEntity.ok(dietPlanService.getPlanById(id));
+        return ResponseEntity.ok(dietPlanService.getPlanById(id, languageUtil.getLang()));
     }
 
     @GetMapping("/my")
     public ResponseEntity<List<UserDietPlanResponse>> getMyPlans(
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(dietPlanService.getMyPlans(user));
+        return ResponseEntity.ok(dietPlanService.getMyPlans(user, languageUtil.getLang()));
     }
 
     @PostMapping("/{id}/save")
     public ResponseEntity<UserDietPlanResponse> addToMyPlans(
             @AuthenticationPrincipal User user,
             @PathVariable Long id) {
-        return ResponseEntity.ok(dietPlanService.addToMyPlans(user, id));
+        return ResponseEntity.ok(dietPlanService.addToMyPlans(user, id, languageUtil.getLang()));
     }
 
     @DeleteMapping("/my/{userDietPlanId}")
@@ -59,7 +61,7 @@ public class DietPlanController {
     @PreAuthorize("hasAuthority('ADMIN_ROLE')")
     public ResponseEntity<DietPlanResponse> createPlan(
             @Valid @RequestBody CreateDietPlanRequest request) {
-        return ResponseEntity.ok(dietPlanService.createPlan(request));
+        return ResponseEntity.ok(dietPlanService.createPlan(request, languageUtil.getLang()));
     }
 
     @PutMapping("/admin/{id}")
@@ -67,7 +69,7 @@ public class DietPlanController {
     public ResponseEntity<DietPlanResponse> updatePlan(
             @PathVariable Long id,
             @Valid @RequestBody CreateDietPlanRequest request) {
-        return ResponseEntity.ok(dietPlanService.updatePlan(id, request));
+        return ResponseEntity.ok(dietPlanService.updatePlan(id, request, languageUtil.getLang()));
     }
 
     @DeleteMapping("/admin/{id}")

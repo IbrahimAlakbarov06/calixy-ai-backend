@@ -6,6 +6,7 @@ import calixy.model.dto.response.FoodResponse;
 import calixy.model.dto.response.MessageResponse;
 import calixy.model.enums.FoodCategory;
 import calixy.service.FoodService;
+import calixy.util.LanguageUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,17 +21,18 @@ import java.util.List;
 public class FoodController {
 
     private final FoodService foodService;
+    private final LanguageUtil languageUtil;
 
     @GetMapping
     public ResponseEntity<List<FoodResponse>> getFoods(
             @RequestParam(required = false) FoodCategory category,
             @RequestParam(required = false) String query) {
-        return ResponseEntity.ok(foodService.getFoods(category, query));
+        return ResponseEntity.ok(foodService.getFoods(category, query, languageUtil.getLang()));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<FoodResponse> getFoodById(@PathVariable Long id) {
-        return ResponseEntity.ok(foodService.getFoodById(id));
+        return ResponseEntity.ok(foodService.getFoodById(id, languageUtil.getLang()));
     }
 
     @PostMapping("/admin")

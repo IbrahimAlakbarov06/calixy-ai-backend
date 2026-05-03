@@ -20,18 +20,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FoodService {
 
-    private static final String LANG =
-            "T(org.springframework.context.i18n.LocaleContextHolder).getLocale().getLanguage()";
-
     private final FoodRepository foodRepository;
     private final FoodMapper foodMapper;
 
-//    @Cacheable(
-//            value = "foods",
-//            key = "'all_' + #category + '_' + #query + '_' + " + LANG
-//    )
+    @Cacheable(value = "foods", key = "'all_' + #category + '_' + #query + '_' + #lang")
     @Transactional(readOnly = true)
-    public List<FoodResponse> getFoods(FoodCategory category, String query) {
+    public List<FoodResponse> getFoods(FoodCategory category, String query, String lang) {
         List<Food> foods;
 
         if (category != null && query != null && !query.isBlank()) {
@@ -47,12 +41,9 @@ public class FoodService {
         return foodMapper.toListResponse(foods);
     }
 
-//    @Cacheable(
-//            value = "foods",
-//            key = "#id + '_' + " + LANG
-//    )
+    @Cacheable(value = "foods", key = "#id + '_' + #lang")
     @Transactional(readOnly = true)
-    public FoodResponse getFoodById(Long id) {
+    public FoodResponse getFoodById(Long id, String lang) {
         Food food = foodRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Food not found with id: " + id));
 
@@ -75,7 +66,6 @@ public class FoodService {
     public FoodResponse updateFood(Long id, UpdateFoodRequest request) {
         Food food = foodRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Food not found with id: " + id));
-
         foodMapper.applyUpdate(food, request);
         return foodMapper.toResponse(foodRepository.save(food));
     }
@@ -85,7 +75,6 @@ public class FoodService {
     public void deleteFood(Long id) {
         Food food = foodRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Food not found with id: " + id));
-
         food.setIsActive(false);
         foodRepository.save(food);
     }

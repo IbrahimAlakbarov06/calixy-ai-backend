@@ -2,9 +2,11 @@ package calixy.controller;
 
 import calixy.domain.entity.User;
 import calixy.model.dto.request.AddUserSupplementRequest;
+import calixy.model.dto.request.CreateSupplementRequest;
 import calixy.model.dto.response.*;
 import calixy.model.enums.SupplementStatus;
 import calixy.service.SupplementService;
+import calixy.util.LanguageUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,23 +24,24 @@ import java.util.List;
 public class SupplementController {
 
     private final SupplementService supplementService;
+    private final LanguageUtil languageUtil;
 
     @GetMapping("/catalog")
     public ResponseEntity<List<SupplementResponse>> getCatalog() {
-        return ResponseEntity.ok(supplementService.getCatalog());
+        return ResponseEntity.ok(supplementService.getCatalog(languageUtil.getLang()));
     }
 
     @GetMapping("/my")
     public ResponseEntity<List<UserSupplementResponse>> getMySupplement(
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(supplementService.getMySupplement(user));
+        return ResponseEntity.ok(supplementService.getMySupplement(user, languageUtil.getLang()));
     }
 
     @PostMapping("/my")
     public ResponseEntity<UserSupplementResponse> addToMySupplement(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody AddUserSupplementRequest request) {
-        return ResponseEntity.ok(supplementService.addToMySupplement(user, request));
+        return ResponseEntity.ok(supplementService.addToMySupplement(user, request, languageUtil.getLang()));
     }
 
     @DeleteMapping("/my/{id}")
@@ -52,14 +55,14 @@ public class SupplementController {
     @GetMapping("/checklist")
     public ResponseEntity<DailySupplementChecklistResponse> getTodayChecklist(
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(supplementService.getChecklist(user, LocalDate.now()));
+        return ResponseEntity.ok(supplementService.getChecklist(user, LocalDate.now(), languageUtil.getLang()));
     }
 
     @GetMapping("/checklist/{date}")
     public ResponseEntity<DailySupplementChecklistResponse> getChecklistByDate(
             @AuthenticationPrincipal User user,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(supplementService.getChecklist(user, date));
+        return ResponseEntity.ok(supplementService.getChecklist(user, date, languageUtil.getLang()));
     }
 
     @PostMapping("/my/{userSupplementId}/log")
@@ -71,17 +74,14 @@ public class SupplementController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         LocalDate logDate = date != null ? date : LocalDate.now();
         return ResponseEntity.ok(
-                supplementService.logSupplement(user, userSupplementId, status, logDate));
+                supplementService.logSupplement(user, userSupplementId, status, logDate, languageUtil.getLang()));
     }
 
     @PostMapping("/admin")
     @PreAuthorize("hasAuthority('ADMIN_ROLE')")
     public ResponseEntity<SupplementResponse> createSupplement(
-            @RequestParam String name,
-            @RequestParam(required = false) String nameAz,
-            @RequestParam(required = false) String description,
-            @RequestParam(required = false) String iconUrl) {
+            @RequestBody CreateSupplementRequest request) {
         return ResponseEntity.ok(
-                supplementService.createSupplement(name, nameAz, description, iconUrl));
+                supplementService.createSupplement(request, languageUtil.getLang()));
     }
 }

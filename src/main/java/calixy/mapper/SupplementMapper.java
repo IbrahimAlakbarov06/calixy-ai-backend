@@ -1,6 +1,7 @@
 package calixy.mapper;
 
 import calixy.domain.entity.*;
+import calixy.model.dto.request.CreateSupplementRequest;
 import calixy.model.dto.response.*;
 import calixy.model.enums.SupplementStatus;
 import calixy.util.LanguageUtil;
@@ -17,6 +18,22 @@ import java.util.stream.Collectors;
 public class SupplementMapper {
 
     private final LanguageUtil languageUtil;
+
+    public Supplement toEntity(CreateSupplementRequest request) {
+        return Supplement.builder()
+                .name(request.getName())
+                .nameAz(request.getNameAz())
+                .nameRu(request.getNameRu())
+                .nameTr(request.getNameTr())
+                .description(request.getDescription())
+                .descriptionAz(request.getDescriptionAz())
+                .descriptionRu(request.getDescriptionRu())
+                .descriptionTr(request.getDescriptionTr())
+                .iconUrl(request.getIconUrl())
+                .isCustom(false)
+                .isActive(true)
+                .build();
+    }
 
     public SupplementResponse toResponse(Supplement s) {
         if (s == null) return null;
@@ -93,8 +110,11 @@ public class SupplementMapper {
             return SupplementChecklistItem.builder()
                     .userSupplementId(us.getId())
                     .supplementLogId(log != null ? log.getId() : null)
-                    .supplementName(us.getSupplement().getName())
-                    .supplementNameAz(us.getSupplement().getNameAz())
+                    .supplementName(languageUtil.resolve(
+                            us.getSupplement().getName(),
+                            us.getSupplement().getNameAz(),
+                            us.getSupplement().getNameRu(),
+                            us.getSupplement().getNameTr()))
                     .isCustom(us.getSupplement().getIsCustom())
                     .timing(us.getTiming())
                     .reminderTime(us.getReminderTime())

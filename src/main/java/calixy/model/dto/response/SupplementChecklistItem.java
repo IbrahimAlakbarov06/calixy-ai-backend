@@ -14,7 +14,6 @@ public class SupplementChecklistItem {
     private Long userSupplementId;
     private Long supplementLogId;
     private String supplementName;
-    private String supplementNameAz;
     private Boolean isCustom;
     private SupplementTiming timing;
     private LocalTime reminderTime;
