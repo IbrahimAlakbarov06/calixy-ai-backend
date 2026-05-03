@@ -2,6 +2,7 @@ package calixy.service;
 
 import calixy.domain.entity.*;
 import calixy.domain.repo.*;
+import calixy.exception.BusinessException;
 import calixy.exception.InvalidInputException;
 import calixy.exception.NotFoundException;
 import calixy.mapper.UserMapper;
@@ -16,6 +17,7 @@ import calixy.model.enums.UserRole;
 import calixy.model.enums.UserStatus;
 import calixy.util.CalorieCalculator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -23,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
@@ -39,6 +43,7 @@ public class UserService {
     private final UserDietaryRuleRepository userDietaryRuleRepository;
     private final UserMapper userMapper;
     private final CalorieCalculator calorieCalculator;
+    private final UploadService uploadService;
     private final PasswordEncoder passwordEncoder;
 
     @Cacheable(value = "userProfile", key = "#user.email")
@@ -111,6 +116,46 @@ public class UserService {
 
     @Transactional
     @CacheEvict(value = "userProfile", key = "#user.email")
+    public UserProfileResponse uploadProfileImage(User user, MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new BusinessException("File is empty");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BusinessException("Only image files are allowed");
+        }
+
+        UserProfile profile = userProfileRepository.findByUserId(user.getId())
+                .orElse(UserProfile.builder().user(user).build());
+
+        if (profile.getProfileImage() != null) {
+            uploadService.deleteImage(profile.getProfileImage());
+        }
+
+        String url = uploadService.uploadImage(file);
+        profile.setProfileImage(url);
+        userProfileRepository.save(profile);
+
+        User updatedUser = userRepository.findByIdWithProfileAndGoals(user.getId())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return userMapper.toProfileResponse(updatedUser);
+    }
+
+    @Transactional
+    public void deleteProfileImage(User user) {
+        UserProfile profile = userProfileRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new NotFoundException("Profile not found"));
+
+        if (profile.getProfileImage() != null) {
+            uploadService.deleteImage(profile.getProfileImage());
+            profile.setProfileImage(null);
+            userProfileRepository.save(profile);
+        }
+    }
+
+    @Transactional
+    @CacheEvict(value = "userProfile", key = "#user.email")
     public UserProfileResponse updateProfile(User user, UpdateUserRequest request) {
         UserProfile profile = userProfileRepository.findByUserId(user.getId())
                 .orElse(UserProfile.builder().user(user).build());
@@ -118,17 +163,15 @@ public class UserService {
         CalorieCalculator.MacroResult macros = null;
         if (profile.getHeight() != null && profile.getWeight() != null
                 && profile.getGender() != null && profile.getAge() != null) {
-
             List<Goal> goals = userGoalRepository.findByUserId(user.getId())
                     .stream().map(UserGoal::getGoal).collect(Collectors.toList());
-
             macros = calorieCalculator.calculateAll(
                     profile.getGender(), profile.getWeight(), profile.getHeight(),
                     profile.getAge(), profile.getActivityLevel(), goals);
         }
 
         userMapper.updateFromRequest(user, profile, request, macros);
-        userRepository.save(user);
+
         userProfileRepository.save(profile);
 
         User updatedUser = userRepository.findByIdWithProfileAndGoals(user.getId())

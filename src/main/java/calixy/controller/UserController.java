@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users")
@@ -49,6 +50,19 @@ public class UserController {
     public ResponseEntity<Page<UserProfileResponse>> getAllUsers(
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
         return ResponseEntity.ok(userService.getAllUsers(pageable));
+    }
+
+    @PostMapping("/me/profile-image")
+    public ResponseEntity<UserProfileResponse> uploadProfileImage(
+            @AuthenticationPrincipal User user,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(userService.uploadProfileImage(user, file));
+    }
+
+    @DeleteMapping("/me/profile-image")
+    public ResponseEntity<Void> deleteProfileImage(@AuthenticationPrincipal User user) {
+        userService.deleteProfileImage(user);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/admin/{id}")

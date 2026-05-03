@@ -22,6 +22,7 @@ public class UserProfileResponse {
     private String fullName;
     private String email;
     private String profileImage;
+    private String language;
 
     private Gender gender;
     private Integer age;

@@ -84,6 +84,7 @@ public class UserMapper {
                 .fullName(profile != null ? profile.getFullName() : null)
                 .email(user.getEmail())
                 .profileImage(profile != null ? profile.getProfileImage() : null)
+                .language(profile != null ? profile.getLanguage() : null)
                 .gender(profile != null ? profile.getGender() : null)
                 .age(profile != null ? profile.getAge() : null)
                 .height(profile != null ? profile.getHeight() : null)
